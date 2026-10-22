@@ -1,0 +1,33 @@
+# Secrets
+.env
+credentials.json
+token.json
+*.token
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Datasets (large, not committed — see data/*/README.md for download instructions)
+data/raw/*/*
+data/processed/*
+data/labeled/*
+!data/raw/*/.gitkeep
+!data/processed/.gitkeep
+!data/labeled/.gitkeep
+
+# Trained model artifacts
+models_store/**/*.joblib
+models_store/**/*.pkl
+!models_store/**/.gitkeep
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Flask instance
+instance/

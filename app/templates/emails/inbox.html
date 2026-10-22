@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Inbox — EmailOrbit{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div><p class="eyebrow">YOUR MAIL, ORGANIZED</p><h2 class="mb-0">Inbox</h2><p class="text-muted mb-0">A little less noise. A little more focus.</p></div>
+  <div class="d-flex gap-2 flex-wrap">
+    <select id="spamFilter" aria-label="Spam status" class="form-select form-select-sm" style="width:auto">
+      <option value="">All spam statuses</option>
+      <option value="true">Predicted spam</option>
+      <option value="false">Predicted non-spam</option>
+    </select>
+    <select id="readFilter" aria-label="Read status" class="form-select form-select-sm" style="width:auto">
+      <option value="">All messages</option>
+      <option value="false">Unread</option>
+      <option value="true">Read</option>
+    </select>
+    <select id="followUpFilter" aria-label="Follow-up status" class="form-select form-select-sm" style="width:auto">
+      <option value="">All follow-ups</option>
+      <option value="true">Needs Follow-up</option>
+    </select>
+  </div>
+</div>
+
+<div class="inbox-toolbar">
+  <label class="search-field"><span aria-hidden="true">⌕</span><input type="search" id="inboxSearch" placeholder="Search sender, subject, or message…" aria-label="Search all synced emails"></label>
+  <select id="priorityFilter" class="form-select" aria-label="Filter by priority"><option value="">All priorities</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+  <select id="sortFilter" class="form-select" aria-label="Sort emails"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="priority">Priority first</option></select>
+</div>
+<p class="small text-muted" id="inboxCount" aria-live="polite"></p>
+<div class="inbox-workspace">
+<section class="inbox-messages" aria-label="Messages">
+
+<div id="inboxLoading" class="loading-placeholder" role="status">Loading emails…<div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div></div>
+<div id="inboxEmpty" class="text-muted d-none">
+  <div class="empty-symbol" aria-hidden="true">✉</div><h5>Nothing here yet</h5>
+  Sync your Gmail from the <a href="{{ url_for('dashboard.dashboard_page') }}">dashboard</a>, or try changing your filters.
+</div>
+
+<div class="list-group" id="inboxList"></div>
+
+<nav class="mt-3" aria-label="Inbox pagination">
+  <ul class="pagination justify-content-center" id="inboxPagination"></ul>
+</nav>
+</section>
+<section class="reading-pane" aria-label="Email preview"><div id="previewEmpty" class="preview-empty"><div class="empty-symbol" aria-hidden="true">◎</div><h4>Room to focus</h4><p>Select a message to read it here.</p></div><iframe id="previewFrame" title="Selected email" class="d-none"></iframe></section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/inbox.js') }}"></script>
+{% endblock %}

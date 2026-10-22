@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}EmailOrbit — AI-Powered Email Organizer{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h1 class="display-5 fw-bold mb-3">Your inbox, organized by AI.</h1>
+  <p class="lead text-muted mb-4">
+    EmailOrbit connects to your Gmail account and automatically categorizes,
+    prioritizes, and summarizes your email — so you only spend attention on
+    what actually needs it.
+  </p>
+  <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-4">
+    Continue with Google
+  </a>
+</div>
+
+<div class="row g-4 mt-4">
+  <div class="col-md-4">
+    <div class="card stat-card h-100 p-3">
+      <h5>Smart Categorization</h5>
+      <p class="text-muted mb-0">Work, Finance, Shopping, Travel and more — sorted automatically.</p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card stat-card h-100 p-3">
+      <h5>Priority &amp; Spam Detection</h5>
+      <p class="text-muted mb-0">Know what's urgent and skip what isn't, before you even open it.</p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card stat-card h-100 p-3">
+      <h5>Summaries &amp; Smart Replies</h5>
+      <p class="text-muted mb-0">Long threads distilled into a few lines, with reply suggestions ready to go.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

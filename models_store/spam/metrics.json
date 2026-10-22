@@ -1,0 +1,69 @@
+{
+  "best_model": "linear_svm",
+  "label_names": {
+    "0": "ham",
+    "1": "spam"
+  },
+  "results": {
+    "logistic_regression": {
+      "accuracy": 0.9769585253456221,
+      "precision_weighted": 0.9770606461567817,
+      "recall_weighted": 0.9769585253456221,
+      "f1_weighted": 0.9770053785618049,
+      "confusion_matrix": [
+        [
+          543,
+          8
+        ],
+        [
+          7,
+          93
+        ]
+      ],
+      "labels": [
+        0,
+        1
+      ]
+    },
+    "linear_svm": {
+      "accuracy": 0.9861751152073732,
+      "precision_weighted": 0.9862136553083483,
+      "recall_weighted": 0.9861751152073732,
+      "f1_weighted": 0.9859680361479343,
+      "confusion_matrix": [
+        [
+          550,
+          1
+        ],
+        [
+          8,
+          92
+        ]
+      ],
+      "labels": [
+        0,
+        1
+      ]
+    },
+    "naive_bayes": {
+      "accuracy": 0.9278033794162827,
+      "precision_weighted": 0.9334776957497855,
+      "recall_weighted": 0.9278033794162827,
+      "f1_weighted": 0.9181909622454408,
+      "confusion_matrix": [
+        [
+          551,
+          0
+        ],
+        [
+          47,
+          53
+        ]
+      ],
+      "labels": [
+        0,
+        1
+      ]
+    }
+  }
+}

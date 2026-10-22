@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Commitment Tracker — EmailOrbit{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap gap-3 mb-3">
+  <div><h2>Commitment Tracker</h2><p class="text-muted">Track what you owe and what others owe you. Confirm proposals before relying on them.</p></div>
+  <form action="{{ url_for('commitments.scan') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-primary">Scan synced emails</button></form>
+</div>
+<div class="d-flex gap-3 mb-4"><a href="/commitments">Open</a><a href="/commitments?view=overdue">Overdue</a><a href="/commitments?view=all">All history</a></div>
+<p class="small text-muted">Only synced messages are included. Dates below are UTC. Proposed changes never replace an active commitment automatically.</p>
+<p class="small text-muted">Open excludes passed deadlines and expired interview events. Overdue also includes expired proposals, which remain unconfirmed.</p>
+<details class="mb-3"><summary>Help improve classification</summary><p>Download up to 300 of your synced emails with blank labels. Label them yourself and keep training and evaluation examples separate.</p><a href="/ml/review-sample.csv">Download private review CSV</a><p class="small text-muted">The file contains email text. Keep it private. Spreadsheet-protected text starting with an apostrophe may need that prefix removed before training.</p></details>
+{% for item in commitments %}
+{% set timing = timings[item.id] %}
+<article class="card p-3 mb-3">
+  <div class="d-flex flex-wrap justify-content-between gap-2"><strong>{{ item.description }}</strong><span class="badge {{ 'bg-warning text-dark' if item.status == 'proposed' else 'bg-secondary' }}">{{ item.status }}{% if item.status in ['proposed', 'active'] and timing.at and timing.at < now %} · {{ 'event passed' if timing.kind == 'event_end' else 'date passed — unconfirmed' if item.status == 'proposed' else 'overdue' }}{% endif %}</span></div>
+  <p class="small mt-2 mb-1">{{ 'I owe' if item.responsible == 'me' else 'Someone owes me' }}{% if item.is_change %} · Possible change — review carefully{% endif %}</p>
+  <p class="small text-muted">{{ timing.note }}{% if timing.at %} <time datetime="{{ timing.at.isoformat() }}Z">{{ timing.at.strftime('%d %b %Y, %H:%M') }} UTC</time>{% endif %}</p>
+  <details class="mb-2"><summary>Supporting email</summary><blockquote class="mt-2">{{ item.evidence }}</blockquote><a href="/inbox/{{ item.source_email_id }}">Read email</a> · <a href="/commitments/thread/{{ item.source_email_id }}">Conversation timeline</a></details>
+  {% if item.status in ['proposed', 'active'] %}
+  <form method="post" action="/commitments/{{ item.id }}" class="d-flex flex-column gap-2">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label class="small">Task<input class="form-control" name="description" value="{{ item.description }}" maxlength="2000" required></label>
+    <div class="d-flex flex-wrap gap-2">
+      <label class="small">Responsible<select class="form-select" name="responsible"><option value="me" {{ 'selected' if item.responsible == 'me' }}>Me</option><option value="other" {{ 'selected' if item.responsible == 'other' }}>Other person</option></select></label>
+      <label class="small">Deadline (UTC, optional)<input type="datetime-local" class="form-control" name="deadline" value="{{ item.deadline_at.strftime('%Y-%m-%dT%H:%M') if item.deadline_at else '' }}"></label>
+      {% if item.status == 'proposed' %}<label class="small">Replace an active commitment?<select class="form-select" name="supersedes_id"><option value="">Keep as a separate task</option>{% for previous in replacement_candidates if previous.thread_id == item.thread_id and previous.id != item.id %}<option value="{{ previous.id }}">{{ previous.description[:100] }}</option>{% endfor %}</select></label>{% endif %}
+    </div>
+    <div class="d-flex gap-2"><button class="btn btn-sm btn-primary" name="status" value="active">{{ 'Confirm' if item.status == 'proposed' else 'Save changes' }}</button><button class="btn btn-sm btn-outline-success" name="status" value="completed">Mark complete</button><button class="btn btn-sm btn-outline-secondary" name="status" value="dismissed">Dismiss</button></div>
+  </form>
+  {% endif %}
+</article>
+{% else %}<div class="card p-4 text-muted">No commitments in this view. Scan synced emails to find explicit promises and requests.</div>{% endfor %}
+{% endblock %}

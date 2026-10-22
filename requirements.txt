@@ -1,0 +1,41 @@
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.7
+python-dotenv==1.0.1
+PyMySQL==1.1.1
+cryptography==43.0.1
+
+# Google OAuth / Gmail API
+google-auth==2.35.0
+google-auth-oauthlib==1.2.1
+google-auth-httplib2==0.2.0
+google-api-python-client==2.147.0
+
+# Traditional ML (Phase 6)
+# scikit-learn must match the shipped artifacts; 1.8.0 has Python 3.14
+# Windows wheels. The supporting numeric packages retain compatible floors.
+scikit-learn==1.8.0
+pandas>=2.2.3
+numpy>=1.26
+scipy>=1.14.1
+joblib>=1.4.2
+matplotlib>=3.9.2
+
+# NLP (Phase 8) - relative/informal date parsing for deadline detection
+python-dateutil==2.9.0.post0
+
+# Smart replies (Phase 9) - only actually called if ANTHROPIC_API_KEY is
+# set in .env; falls back to deterministic templates otherwise.
+# Floor, not an exact pin: 0.39.0 (Aug 2024) predates Python 3.14, and its
+# pinned pydantic<3,>=1.9.0 range has no version whose upper Python bound
+# reaches 3.14, so pip can't resolve it at all on that interpreter. A floor
+# lets pip pick a current release (1.x line as of mid-2026) that explicitly
+# lists Python 3.14 support and pulls in a pydantic/pydantic-core with a
+# real cp314 wheel. Only anthropic.Anthropic(...) and
+# client.messages.create(...) are used in this codebase (llm_client.py) -
+# both stable across this range, so no code changes are needed.
+anthropic>=0.39.0
+
+# Dev / testing
+pytest==8.3.3
+pytest-cov==6.0.0

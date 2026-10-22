@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}{{ email.subject or "(no subject)" }} — EmailOrbit{% endblock %}
+
+{% block content %}
+<div id="emailDetail" data-email-id="{{ email.id }}">
+  {% if request.args.get('preview') != '1' %}<a href="{{ url_for('dashboard.inbox_page') }}" class="btn btn-sm btn-outline-secondary mb-3">&larr; Back to Inbox</a>{% else %}<a class="small d-block mb-3" href="/inbox/{{ email.id }}" target="_top">Open full message ↗</a>{% endif %}
+
+  <div class="card stat-card p-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <h3 id="emailSubject">{{ email.subject or "(no subject)" }}</h3>
+        <p class="text-muted mb-1">From: <span id="emailSender">{{ email.sender }}</span></p>
+        <p class="text-muted mb-1">To: <span id="emailReceiver">{{ email.receiver or "" }}</span></p>
+        <p class="text-muted mb-0">Received: <time id="emailTimestamp" datetime="{{ email.timestamp.isoformat() }}Z">{{ email.timestamp.strftime('%d %b %Y, %H:%M') }} UTC</time></p>
+      </div>
+      <div class="text-end">
+        <a class="btn btn-sm btn-primary" href="{{ url_for('mail.compose', reply_to=email.id) }}" {{ 'target=_top' if request.args.get('preview') == '1' else '' }}>Reply</a>
+        <button id="toggleReadBtn" class="btn btn-sm btn-outline-primary">
+          Mark as {{ "Unread" if email.is_read else "Read" }}
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      {% if email.category %}
+        <span class="badge bg-secondary" id="categoryBadge">{{ email.category }}</span>
+      {% else %}
+        <span class="badge bg-light text-muted" id="categoryBadge">Uncategorized</span>
+      {% endif %}
+      {% if email.priority %}
+        <span class="badge badge-priority-{{ email.priority }}" id="priorityBadge">{{ email.priority }}</span>
+      {% else %}
+        <span class="badge bg-light text-muted" id="priorityBadge">Priority pending</span>
+      {% endif %}
+      {% if email.spam_label %}
+        <span class="badge bg-danger">Marked as Spam</span>
+      {% endif %}
+      {% if email.needs_follow_up %}
+        <span class="badge bg-warning text-dark">Needs Follow-up</span>
+      {% endif %}
+      {% if email.is_duplicate %}
+        <span class="badge bg-light text-muted">
+          Duplicate{% if email.duplicate_of_email_id %} of <a href="{{ url_for('dashboard.email_detail_page', email_id=email.duplicate_of_email_id) }}">this email</a>{% endif %}
+        </span>
+      {% endif %}
+    </div>
+
+    <div class="mt-2 d-flex flex-wrap gap-2 align-items-center" id="feedbackForm">
+      <select id="categoryCorrection" class="form-select form-select-sm" style="width:auto">
+        <option value="">Correct category…</option>
+        {% for option in ["Work", "Education", "Personal", "Finance", "Shopping", "Travel", "Social", "Promotions", "Other"] %}
+        <option value="{{ option }}">{{ option }}</option>
+        {% endfor %}
+      </select>
+      <select id="priorityCorrection" class="form-select form-select-sm" style="width:auto">
+        <option value="">Correct priority…</option>
+        {% for option in ["HIGH", "MEDIUM", "LOW"] %}
+        <option value="{{ option }}">{{ option }}</option>
+        {% endfor %}
+      </select>
+      <span class="text-muted small" id="feedbackStatus"></span>
+      <label class="small"><input type="checkbox" id="applyToSender"> Apply this correction to future emails from this sender</label>
+    </div>
+
+    <hr>
+    {% if category_review is defined %}<details class="small mb-3"><summary>About this category prediction{% if email.category_confidence is not none and email.category_confidence < 0.6 %} · Review recommended{% endif %}</summary><p class="mt-2 mb-1">{{ category_review.note }}</p>{% if category_review.terms %}<p>Contributing terms: {{ category_review.terms | join(', ') }}</p>{% endif %}<p class="text-muted">The shipped categorizer supports Work, Personal and Other. SVM confidence scores are not calibrated probabilities. Use the correction controls if needed.</p></details>{% endif %}
+
+    <div class="email-summary-panel"><h6>✦ Summary</h6>
+    <p class="text-muted" id="emailSummary">
+      {{ (email.summary or "No summary yet — run a Gmail sync or POST /nlp/process-all to generate one.") | urlize(target='_blank', rel='noopener noreferrer') }}
+    </p>
+    </div>
+
+    {% if key_info is defined %}
+    <section class="card p-3 mb-3" aria-label="Key information"><h6>Key information</h6><p>{{ key_info.overview }}</p>
+      {% if key_info.actions %}<strong class="small">What to do</strong><ul>{% for action in key_info.actions %}<li>{{ action }}</li>{% endfor %}</ul>{% endif %}
+      {% if key_info.restrictions %}<strong class="small">Important restrictions</strong><ul>{% for restriction in key_info.restrictions %}<li>{{ restriction }}</li>{% endfor %}</ul>{% endif %}
+      {% if key_info.deadlines %}<strong class="small">Dates to confirm</strong><ul>{% for deadline in key_info.deadlines %}<li>{% if deadline.deadline_at %}{{ deadline.deadline_at.strftime('%d %b %Y, %H:%M %z') }}{% else %}Needs clarification{% endif %}<details><summary>Supporting text</summary>{{ deadline.evidence }}</details></li>{% endfor %}</ul><small class="text-muted">Check interpreted dates; unspecified times assume 17:00.</small>{% endif %}
+      <a class="small mt-2" href="/commitments/thread/{{ email.id }}" {{ 'target=_top' if request.args.get('preview') == '1' else '' }}>Conversation timeline and commitments →</a>
+    </section>
+    {% endif %}
+    {% if email.actions %}
+    <h6>Action Items</h6>
+    <ul id="emailActions">
+      {% for action in email.actions %}
+      <li class="{{ 'text-muted text-decoration-line-through' if action.is_completed else '' }}">{{ action.description }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if email.reminders %}
+    <h6>Deadlines</h6>
+    <ul id="emailReminders">
+      {% for reminder in email.reminders %}
+      <li class="{{ 'text-muted text-decoration-line-through' if reminder.is_dismissed else '' }}">
+        {{ reminder.description or "Deadline" }} — <time datetime="{{ reminder.deadline_at.isoformat() }}Z">{{ reminder.deadline_at.strftime("%d %b %Y, %H:%M") }} UTC</time>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if email.smart_replies %}
+    <h6>Smart Replies</h6>
+    <div id="smartReplies" class="d-flex flex-wrap gap-2 mb-1">
+      {% for reply in email.smart_replies | fromjson %}
+      <button type="button" class="btn btn-sm btn-outline-primary smart-reply-chip" data-reply-text="{{ reply }}">{{ reply }}</button>
+      {% endfor %}
+    </div>
+    <p class="text-muted small">
+      Suggested by {{ "AI" if email.smart_reply_source == "llm" else "template" }} — click to copy, or open Reply to insert and edit a suggestion.
+    </p>
+    {% endif %}
+
+    <h6>Message</h6>
+    <div class="email-body" id="emailBody">{{ email | linked_email_body }}</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/email_detail.js') }}"></script>
+{% endblock %}

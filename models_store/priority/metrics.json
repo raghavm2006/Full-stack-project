@@ -1,0 +1,90 @@
+{
+  "best_model": "logistic_regression",
+  "results": {
+    "logistic_regression": {
+      "accuracy": 0.9731343283582089,
+      "precision_weighted": 0.9739609644087256,
+      "recall_weighted": 0.9731343283582089,
+      "f1_weighted": 0.9732816035441252,
+      "confusion_matrix": [
+        [
+          229,
+          3,
+          0
+        ],
+        [
+          3,
+          59,
+          0
+        ],
+        [
+          0,
+          3,
+          38
+        ]
+      ],
+      "labels": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+    "linear_svm": {
+      "accuracy": 0.9582089552238806,
+      "precision_weighted": 0.9578517668069906,
+      "recall_weighted": 0.9582089552238806,
+      "f1_weighted": 0.9579488821984498,
+      "confusion_matrix": [
+        [
+          230,
+          2,
+          0
+        ],
+        [
+          4,
+          55,
+          3
+        ],
+        [
+          0,
+          5,
+          36
+        ]
+      ],
+      "labels": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+    "random_forest": {
+      "accuracy": 0.8298507462686567,
+      "precision_weighted": 0.8195157430934267,
+      "recall_weighted": 0.8298507462686567,
+      "f1_weighted": 0.8105835327954762,
+      "confusion_matrix": [
+        [
+          229,
+          1,
+          2
+        ],
+        [
+          34,
+          26,
+          2
+        ],
+        [
+          8,
+          10,
+          23
+        ]
+      ],
+      "labels": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    }
+  },
+  "note": "Labels are heuristic pseudo-labels \u2014 see feature_engineering.py's docstring."
+}

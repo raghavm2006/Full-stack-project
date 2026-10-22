@@ -1,0 +1,89 @@
+{
+  "best_model": "linear_svm",
+  "results": {
+    "logistic_regression": {
+      "accuracy": 0.849112426035503,
+      "precision_weighted": 0.8588264299802763,
+      "recall_weighted": 0.849112426035503,
+      "f1_weighted": 0.8537721020238502,
+      "confusion_matrix": [
+        [
+          0,
+          0,
+          7
+        ],
+        [
+          0,
+          10,
+          16
+        ],
+        [
+          8,
+          20,
+          277
+        ]
+      ],
+      "labels": [
+        "Other",
+        "Personal",
+        "Work"
+      ]
+    },
+    "linear_svm": {
+      "accuracy": 0.8964497041420119,
+      "precision_weighted": 0.86267258382643,
+      "recall_weighted": 0.8964497041420119,
+      "f1_weighted": 0.8758243102134505,
+      "confusion_matrix": [
+        [
+          0,
+          0,
+          7
+        ],
+        [
+          0,
+          6,
+          20
+        ],
+        [
+          1,
+          7,
+          297
+        ]
+      ],
+      "labels": [
+        "Other",
+        "Personal",
+        "Work"
+      ]
+    },
+    "naive_bayes": {
+      "accuracy": 0.9023668639053254,
+      "precision_weighted": 0.8142659570743321,
+      "recall_weighted": 0.9023668639053254,
+      "f1_weighted": 0.856055656270993,
+      "confusion_matrix": [
+        [
+          0,
+          0,
+          7
+        ],
+        [
+          0,
+          0,
+          26
+        ],
+        [
+          0,
+          0,
+          305
+        ]
+      ],
+      "labels": [
+        "Other",
+        "Personal",
+        "Work"
+      ]
+    }
+  }
+}

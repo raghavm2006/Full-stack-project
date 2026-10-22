@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — EmailOrbit{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div><p class="eyebrow">A CLEARER DAY STARTS HERE</p><h2 class="mb-1">Your inbox, in orbit.</h2><p class="text-muted mb-0">Stay on top of the messages that matter.</p></div>
+  <div>
+    {% if current_user.gmail_scope_granted %}
+      <button id="syncBtn" class="btn btn-primary">
+        <span id="syncSpinner" class="spinner-border spinner-border-sm d-none me-1"></span>
+        Sync Gmail
+      </button>
+      <button id="olderSyncBtn" class="btn btn-outline-primary" disabled>Load older emails</button>
+      <small class="d-block text-muted mt-1" id="lastSync">{% if current_user.last_synced_at %}Last synced <time datetime="{{ current_user.last_synced_at.isoformat() }}Z">{{ current_user.last_synced_at.strftime('%d %b, %H:%M') }} UTC</time>{% else %}Ready for your first sync{% endif %}</small>
+    {% else %}
+      <a href="{{ url_for('gmail.connect') }}" class="btn btn-success">Connect Gmail</a>
+    {% endif %}
+  </div>
+</div>
+
+<div id="syncResult" class="alert alert-info d-none" role="status" aria-live="polite"></div>
+
+<div class="section-heading"><h4>Needs your attention</h4><span class="text-muted small">Your next steps, at a glance</span></div>
+<div class="attention-grid mb-4">
+  <a class="attention-card attention-urgent" href="/inbox?priority=HIGH"><span class="attention-icon" aria-hidden="true">!</span><span><strong data-stat="high_priority_emails">—</strong><span>High-priority messages</span><small>Review what matters most</small></span><span aria-hidden="true">↗</span></a>
+  <a class="attention-card" href="/inbox?needs_follow_up=true"><span class="attention-icon" aria-hidden="true">↗</span><span><strong data-stat="pending_replies">—</strong><span>Waiting for a reply</span><small>Pick up the conversation</small></span><span aria-hidden="true">↗</span></a>
+  <a class="attention-card" href="#deadlines"><span class="attention-icon" aria-hidden="true">◷</span><span><strong data-stat="upcoming_deadlines">—</strong><span>Upcoming deadlines</span><small>Make space for what's next</small></span><span aria-hidden="true">↗</span></a>
+</div>
+<div class="section-heading"><h4>Mailbox overview</h4><a href="/inbox" class="small">Open inbox →</a></div>
+
+<div class="row g-3 mb-4" id="statCards">
+  <div class="col-6 col-md-3"><a href="/commitments?view=overdue" class="card stat-card p-3 text-center text-decoration-none"><div class="stat-value text-danger" data-stat="overdue_commitments">—</div><div class="text-muted">Overdue Commitments</div></a></div>
+  <div class="col-6 col-md-3">
+    <a href="/inbox?spam_label=true" class="card stat-card p-3 text-center text-decoration-none" aria-label="View emails predicted as spam">
+      <div class="stat-value text-danger" data-stat="spam_emails">—</div>
+      <div class="text-muted">Predicted Spam</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card p-3 text-center">
+      <div class="stat-value" data-stat="total_emails">—</div>
+      <div class="text-muted">Total Emails</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card p-3 text-center">
+      <div class="stat-value" data-stat="unread_emails">—</div>
+      <div class="text-muted">Unread</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card p-3 text-center">
+      <div class="stat-value text-danger" data-stat="high_priority_emails">—</div>
+      <div class="text-muted">High Priority</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card p-3 text-center">
+      <div class="stat-value" data-stat="pending_replies">—</div>
+      <div class="text-muted">Pending Replies</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card p-3 text-center">
+      <div class="stat-value" data-stat="upcoming_deadlines">—</div>
+      <div class="text-muted">Upcoming Deadlines</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card p-3 text-center">
+      <div class="stat-value" data-stat="duplicate_emails">—</div>
+      <div class="text-muted">Duplicate Emails</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card stat-card p-3">
+      <h5>Emails by Category</h5>
+      <div class="chart-wrap"><canvas id="categoryChart" height="220"></canvas></div>
+      <p id="categoryEmpty" class="text-muted d-none">No emails synced yet.</p>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card stat-card p-4 mb-3" id="deadlines">
+      <div class="section-heading"><h5>Coming up</h5><span class="small text-muted">Next deadlines</span></div>
+      {% for reminder in upcoming_reminders %}
+      <a class="deadline-row" href="/inbox/{{ reminder.email_id }}"><span class="deadline-icon" aria-hidden="true">◷</span><span>{{ reminder.description or 'Upcoming deadline' }}<small><time datetime="{{ reminder.deadline_at.isoformat() }}Z">{{ reminder.deadline_at.strftime('%d %b, %H:%M') }} UTC</time></small></span><span aria-hidden="true">→</span></a>
+      {% else %}<div class="calm-empty"><span aria-hidden="true">✓</span><h6>A little breathing room</h6><p class="text-muted mb-0">No upcoming deadlines detected.</p></div>{% endfor %}
+    </div>
+    <div class="card stat-card p-4 insight-card">
+      <p class="eyebrow">YOUR INBOX ASSISTANT</p><h5>Less reading. More clarity.</h5>
+      <p class="text-muted" id="insightsPlaceholder">
+        Open an email to see its summary, suggested replies, action items,
+        and deadlines. Automatic categories cover Work, Personal, and Other;
+        priority is an estimate, so review important messages yourself.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

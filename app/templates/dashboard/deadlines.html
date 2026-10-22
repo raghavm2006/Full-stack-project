@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Deadlines — EmailOrbit{% endblock %}
+{% block content %}
+<h2>Deadlines</h2>
+<p class="text-muted">Dates extracted from your synced emails. Check the source email to verify them.</p>
+<nav class="d-flex gap-3 mb-4" aria-label="Deadline filters">
+  <a href="/deadlines" {{ 'aria-current=page' if view == 'upcoming' else '' }}>Upcoming</a>
+  <a href="/deadlines?view=overdue" {{ 'aria-current=page' if view == 'overdue' else '' }}>Overdue</a>
+  <a href="/deadlines?view=all" {{ 'aria-current=page' if view == 'all' else '' }}>All</a>
+</nav>
+{% for reminder in reminders %}
+<article class="card p-3 mb-3">
+  <div class="d-flex justify-content-between flex-wrap gap-2"><strong>{{ reminder.description or 'Deadline' }}</strong><span class="badge {{ 'bg-danger' if not reminder.is_dismissed and reminder.deadline_at < now else 'bg-secondary' }}">{{ 'Dismissed' if reminder.is_dismissed else 'Overdue' if reminder.deadline_at < now else 'Upcoming' }}</span></div>
+  <time class="my-2" datetime="{{ reminder.deadline_at.isoformat() }}Z">{{ reminder.deadline_at.strftime('%d %b %Y, %H:%M') }} UTC</time>
+  <a href="/inbox/{{ reminder.email_id }}">Read supporting email</a>
+</article>
+{% else %}<div class="card p-4 text-muted">No deadlines in this view.</div>{% endfor %}
+{% endblock %}

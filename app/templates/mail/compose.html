@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Reply' if reply else 'Compose' }} — EmailOrbit{% endblock %}
+{% block content %}
+<h2>{{ 'Reply to email' if reply else 'Compose email' }}</h2>
+<p class="text-muted">Write and preview your message. Nothing is sent until you explicitly confirm Send on the preview.</p>
+{% if error %}<div class="alert alert-danger" role="alert">{{ error }} Please reselect any newly uploaded attachments.</div>{% endif %}
+{% if reply %}<details class="card p-3 mb-3"><summary>Original: {{ reply.subject }}</summary><p class="mt-2">From: {{ reply.sender }}</p><div class="email-body">{{ reply | linked_email_body }}</div></details>{% endif %}
+<form action="{{ url_for('mail.prepare') }}" method="post" enctype="multipart/form-data" class="card p-4 d-flex flex-column gap-3" id="composeForm">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if reply %}<input type="hidden" name="reply_email_id" value="{{ reply.id }}">{% endif %}
+  {% if outgoing %}<input type="hidden" name="edit_id" value="{{ outgoing.id }}">{% endif %}
+  <label>To<input class="form-control" name="to" value="{{ fields.to }}" placeholder="recipient@example.com" maxlength="10000" required></label>
+  <div class="row g-3"><label class="col-md-6">CC<input class="form-control" name="cc" value="{{ fields.cc }}" maxlength="10000"></label><label class="col-md-6">BCC<input class="form-control" name="bcc" value="{{ fields.bcc }}" maxlength="10000"></label></div>
+  <small class="text-muted">Separate addresses with commas. BCC recipients are hidden from other recipients.</small>
+  <label>Subject<input class="form-control" name="subject" value="{{ fields.subject }}" maxlength="998" required {{ 'readonly' if reply else '' }}></label>
+  {% if suggestions %}<div><span class="small">Start with a suggestion, then edit:</span><div class="d-flex flex-wrap gap-2 mt-1">{% for suggestion in suggestions if suggestion is string %}<button type="button" class="btn btn-sm btn-outline-primary compose-suggestion" data-text="{{ suggestion }}">{{ suggestion }}</button>{% endfor %}</div></div>{% endif %}
+  <label>Message<textarea class="form-control" rows="12" id="composeBody" name="body" maxlength="100000" required>{{ fields.body }}</textarea></label>
+  {% if outgoing and outgoing.attachments != '[]' %}<label><input type="checkbox" name="keep_attachments" value="1" checked> Keep existing attachments: {% for file in outgoing.attachments | fromjson %}{{ file.name }}{% if not loop.last %}, {% endif %}{% endfor %}</label>{% endif %}
+  <label>Attachments<input class="form-control" type="file" name="attachments" multiple><small class="text-muted">Up to 10 files, 10 MB total. Files are uploaded only when you preview.</small></label>
+  <button class="btn btn-primary align-self-start" type="submit">Preview{{ ' and check reply' if reply else '' }}</button>
+</form>
+{% if history %}<h4 class="mt-4">Recent outgoing messages and drafts</h4><div class="list-group">{% for item in history %}<a class="list-group-item list-group-item-action" href="/mail/preview/{{ item.id }}">{{ item.subject }} <span class="badge bg-secondary">{{ item.status }}</span></a>{% endfor %}</div>{% endif %}
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/compose.js') }}"></script>{% endblock %}

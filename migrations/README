@@ -1,0 +1,24 @@
+Database migrations
+
+The original phase-by-phase migration files were not included in this
+checkout. The phase11_baseline revision snapshots the delivered schema;
+large_email_payloads widens the MySQL email body and raw payload columns.
+
+Fresh, empty database (PowerShell, from emailorbit/):
+    $env:FLASK_APP = "run.py"
+    .\.venv\Scripts\python.exe -m flask db upgrade
+
+Existing database with the complete Phase 11 schema and no Alembic history:
+    Back up the database and verify its schema matches 0001_phase11_baseline.py.
+    .\.venv\Scripts\python.exe -m flask db stamp phase11_baseline
+    .\.venv\Scripts\python.exe -m flask db upgrade
+
+Stamping records a revision; it does not create or repair any tables. Do not
+stamp a database that is missing Phase 11 fields. If a database already has
+an older Alembic revision, recover its original migration files and reconcile
+the histories before using this replacement baseline.
+
+Future schema changes use flask db migrate, followed by flask db upgrade.
+Do not run the historical README's phase-by-phase init/migrate commands on
+top of this migration directory. Downgrading LONGTEXT can lose oversized data;
+check stored lengths before downgrading.
